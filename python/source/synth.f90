@@ -84,7 +84,7 @@ contains
 								
 ! Compute frequency dependency of line opacity, source function and boundary condition
 			do j = 1, lineList%transition(i)%nLambda
-				voigtProfile = vecfvoigt2(lineList%transition(i)%damping,(lineList%transition(i)%frequency0 - lineList%transition(i)%frequency(j)) / lineList%transition(i)%deltaNu)
+				voigtProfile = vecfvoigt2(lineList%transition(i)%damping,(lineList%transition(i)%frequency0 - lineList%transition(i)%frequency(j) - lineList%transition(i)%frequency0 * 1e5 * atmosphere%vmac / PC) / lineList%transition(i)%deltaNu)
 				
 				lineList%transition(i)%opacity(:,j) = lineList%transition(i)%lineOpacity * voigtProfile / (lineList%transition(i)%deltaNu * SQRTPI) !+ lineList%transition(i)%backOpacity
 					

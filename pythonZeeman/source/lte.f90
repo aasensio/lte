@@ -1,6 +1,6 @@
 module lteMod
-use globalModule, only : atmosphere, lineList, PH, PC, PK, PHK, UMA, EV_ERG, SQRTPI
-use synthModule, only : synthLines
+use globalModule, only : atmosphere, lineList, PH, PC, PK, PHK, UMA, EV_ERG, SQRTPI, PI, identity
+use synthModule, only : synthLines, generate_atomic_zeeman_components
 use mathsModule, only: qsortd
 use iso_c_binding, only: c_int, c_double
 implicit none
@@ -9,10 +9,11 @@ contains
 
 	subroutine c_initatmosphere(nDepths) bind(c)
 	integer(c_int), intent(in) :: nDepths
+	integer :: i
    
 		atmosphere%nDepths = nDepths
 		
-		print *, 'N. depth points = ', atmosphere%nDepths
+! 		print *, 'N. depth points = ', atmosphere%nDepths
 		
 		if (associated(atmosphere%lTau500)) deallocate(atmosphere%lTau500)
 		allocate(atmosphere%lTau500(atmosphere%nDepths))
@@ -35,6 +36,15 @@ contains
 		if (associated(atmosphere%vmac)) deallocate(atmosphere%vmac)
 		allocate(atmosphere%vmac(atmosphere%nDepths))
 		
+		if (associated(atmosphere%B)) deallocate(atmosphere%B)
+		allocate(atmosphere%B(atmosphere%nDepths))
+		
+		if (associated(atmosphere%thetaB)) deallocate(atmosphere%thetaB)
+		allocate(atmosphere%thetaB(atmosphere%nDepths))
+		
+		if (associated(atmosphere%chiB)) deallocate(atmosphere%chiB)
+		allocate(atmosphere%chiB(atmosphere%nDepths))
+				
 		if (associated(atmosphere%niovern)) deallocate(atmosphere%niovern)
 		allocate(atmosphere%niovern(atmosphere%nDepths))
 		
@@ -88,6 +98,28 @@ contains
 		
 		if (associated(atmosphere%opacity500)) deallocate(atmosphere%opacity500)
 		allocate(atmosphere%opacity500(atmosphere%nDepths))
+		
+		if (associated(atmosphere%splitting)) deallocate(atmosphere%splitting)
+		allocate(atmosphere%splitting(atmosphere%nDepths))
+		
+		if (associated(atmosphere%profile)) deallocate(atmosphere%profile)
+		allocate(atmosphere%profile(2,atmosphere%nDepths))
+		
+		if (associated(atmosphere%zeeman_voigt)) deallocate(atmosphere%zeeman_voigt)
+		allocate(atmosphere%zeeman_voigt(3,atmosphere%nDepths))
+		
+		if (associated(atmosphere%zeeman_faraday)) deallocate(atmosphere%zeeman_faraday)
+		allocate(atmosphere%zeeman_faraday(3,atmosphere%nDepths))
+		
+		if (associated(atmosphere%coefficients)) deallocate(atmosphere%coefficients)
+		allocate(atmosphere%coefficients(7,atmosphere%nDepths))
+		
+! Generate identity matrix
+		identity = 0.d0
+		do i = 1, 4
+			identity(i,i) = 1.d0
+		enddo
+
 				
 	end subroutine c_initatmosphere
    
@@ -98,6 +130,7 @@ contains
 	integer :: activeLines, i
    
 		lineList%nLines = nLines
+		lineList%nLambdaTotal = nLambda
 		
 		if (associated(linelist%transition)) deallocate(lineList%transition)
 		allocate(lineList%transition(lineList%nLines))
@@ -138,34 +171,40 @@ contains
 			allocate(lineList%transition(i)%continuumIntensity(lineList%transition(i)%nLambda))
 			allocate(lineList%transition(i)%observed(lineList%transition(i)%nLambda))
 				
-			allocate(lineList%transition(i)%opacity(atmosphere%nDepths,lineList%transition(i)%nLambda))
+			allocate(lineList%transition(i)%opacity(7,atmosphere%nDepths,lineList%transition(i)%nLambda))
 			allocate(lineList%transition(i)%opacityContinuum(atmosphere%nDepths,lineList%transition(i)%nLambda))
-			allocate(lineList%transition(i)%source(atmosphere%nDepths,lineList%transition(i)%nLambda))
-			
+			allocate(lineList%transition(i)%source(atmosphere%nDepths,lineList%transition(i)%nLambda))						
+									
 			lineList%transition(i)%lambda = lambdaAxis
 			lineList%transition(i)%frequency = PC / (lineList%transition(i)%lambda * 1.d-8)
+			
+			
+			call generate_atomic_zeeman_components(lineList%transition(i))
 							
 		enddo
 		
-		allocate(lineList%opacity(atmosphere%nDepths,nLambda))
+		allocate(lineList%opacity(7,atmosphere%nDepths,nLambda))
 		allocate(lineList%source(atmosphere%nDepths,nLambda))
-		allocate(lineList%boundary(nLambda))
+		allocate(lineList%boundary(4,nLambda))
 		allocate(lineList%opacityContinuum(atmosphere%nDepths,nLambda))
 		allocate(lineList%intensity(nLambda))
 		allocate(lineList%intensityContinuum(nLambda))
 				
-		write(*,*) 'Number of active lines : ', activeLines
+! 		write(*,*) 'Number of active lines : ', activeLines
 	end subroutine c_initlines
    
 	subroutine c_synthlines(nDepths, atmosphereIn, nLambda, stokesOut) bind(c)
 	integer(c_int), intent(in) :: nDepths, nLambda
-	real(c_double), intent(in) :: atmosphereIn(4,nDepths)
+	real(c_double), intent(in) :: atmosphereIn(7,nDepths)
 	real(c_double), intent(inout) :: stokesOut(5,nLambda)
    		
 		atmosphere%lTau500 = atmosphereIn(1,:)
 		atmosphere%T = atmosphereIn(2,:)
 		atmosphere%microturbulence= atmosphereIn(3,:)
 		atmosphere%vmac = atmosphereIn(4,:)
+		atmosphere%B = atmosphereIn(5,:)
+		atmosphere%thetaB = atmosphereIn(6,:) * PI / 180.0
+		atmosphere%chiB = atmosphereIn(7,:) * PI / 180.0
 						
 ! Order the optical depth
 		call qsortd(atmosphere%lTau500,atmosphere%order,atmosphere%nDepths)

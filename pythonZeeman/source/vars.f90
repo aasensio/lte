@@ -18,28 +18,31 @@ implicit none
 		character(len=256) :: file
 		integer :: nDepths, nNodes
 		real(kind=8) :: abundance
-		real(kind=8), dimension(:), pointer :: lTau500, height, T, nodes, niovern, ui, u1, u2, u3, n2overn1, n1overn0, microturbulence, vmac
-		real(kind=8), dimension(:), pointer :: opacity500
+		real(kind=8), dimension(:), pointer :: lTau500, height, T, nodes, niovern, ui, u1, u2, u3, n2overn1, n1overn0, microturbulence, vmac, B, thetaB, chiB
+		real(kind=8), dimension(:), pointer :: opacity500, splitting
  		real(kind=8), dimension(:), pointer :: Pe, Pg, PH, PHminus, PHplus, PH2, PH2plus, PTotal, nHtot, TOrdered, lTau500Ordered
+ 		real(kind=8), dimension(:,:), pointer :: profile, zeeman_voigt, zeeman_faraday, coefficients
  		integer, dimension(:), pointer :: order 		
 	end type atmosphereType
 
 	type transitionType
-		integer :: nLambda, element, ionization
+		integer :: nLambda, element, ionization, nComponents(3)
 		logical :: active
 		real(kind=8) :: lambda0, gf, Elow, gu, Ju, gl, Jl, sigmaABO, alphaABO, lambdaLeft, lambdaRight
 		real(kind=8) :: frequency0, boundary
 		real(kind=8), dimension(:), pointer :: lambda, intensity, observed, continuumIntensity
 		real(kind=8), dimension(:), pointer :: lineOpacity, backOpacity, dopplerWidth, deltaNu, damping, frequency
-		real(kind=8), dimension(:,:), pointer :: opacity, source, opacityContinuum
+		real(kind=8), dimension(:,:), pointer :: source, opacityContinuum, splitting, strength
+		real(kind=8), dimension(:,:,:), pointer :: opacity
 	end type transitionType
 	
 	type lineListType
 		character(len=256) :: file
 		integer :: nLines, nLambdaTotal
 		type(transitionType), dimension(:), pointer :: transition
-		real(kind=8), dimension(:,:), pointer :: opacity, source, opacityContinuum
-		real(kind=8), dimension(:), pointer :: intensity, boundary, intensityContinuum
+		real(kind=8), dimension(:,:), pointer :: source, opacityContinuum, boundary
+		real(kind=8), dimension(:,:,:), pointer :: opacity
+		real(kind=8), dimension(:), pointer :: intensity, intensityContinuum
 	end type lineListType
 	
 	
@@ -52,5 +55,7 @@ implicit none
 	type(atmosphereType) :: atmosphere
 	type(lineListType) :: lineList
 	type(atlasType) :: atlas
+	
+	real(kind=8) :: identity(4,4)
 
 end module globalModule
