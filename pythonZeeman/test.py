@@ -11,7 +11,7 @@ except:
 atmos = np.loadtxt('hsra.model', skiprows=2)
 lines = np.loadtxt('lines.dat')
 
-wl = np.linspace(6301.0,6303.0,150)
+wl = np.linspace(10824,10830,200)
 pylte.initAtmos(atmos)
 pylte.initLines(lines, wl)
 

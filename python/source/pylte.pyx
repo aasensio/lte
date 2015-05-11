@@ -1,7 +1,7 @@
 from numpy cimport ndarray as ar
 from numpy import empty, ascontiguousarray
 
-cdef extern from "pylte.h":
+cdef extern:
 	void c_initatmosphere(int *nDepths)
 	void c_initlines(int *nLines, double *lineListIn, int *nLambda, double *lambdaIn)
 	void c_synthlines(int *nDepths, double *atmosphereIn, int *nLambda, double *stokesOut)

@@ -1,6 +1,6 @@
 COMPILER = gfortran
 FLAGS = 
-OPTIONS = -c -ffree-line-length-none -fPIC -O3
+OPTIONS = -c -march=native -ffree-line-length-none -fPIC -O3
  
 all: 
 	make pylte

@@ -265,7 +265,7 @@ contains
 			lineList%transition(i)%lineOpacity = OPA * lineList%transition(i)%gf / atmosphere%ui * dexp(-lineList%transition(i)%Elow / (PK * atmosphere%T)) *&
 				(1.d0 - dexp(-PHK * lineList%transition(i)%frequency0 / atmosphere%T)) * atmosphere%niovern * &
 				(atmosphere%nhtot * atmosphere%abundance)
-								
+												
 ! Doppler width
 			lineList%transition(i)%dopplerWidth = dsqrt(atmosphere%microturbulence**2.d0 + 2.d0 * PK * atmosphere%T / (weight * UMA))
 			lineList%transition(i)%deltaNu = lineList%transition(i)%dopplerWidth * lineList%transition(i)%frequency0 / PC

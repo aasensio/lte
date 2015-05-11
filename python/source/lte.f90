@@ -161,6 +161,7 @@ contains
 	integer(c_int), intent(in) :: nDepths, nLambda
 	real(c_double), intent(in) :: atmosphereIn(4,nDepths)
 	real(c_double), intent(inout) :: stokesOut(5,nLambda)
+	integer :: i
    		
 		atmosphere%lTau500 = atmosphereIn(1,:)
 		atmosphere%T = atmosphereIn(2,:)

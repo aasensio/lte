@@ -42,12 +42,8 @@ contains
 		lineList%opacity = 0.d0
 		
 		do i = 1, lineList%nLines
-			do j = 1, atmosphere%nDepths
-				call partitionAtomic(atmosphere%T(j), lineList%transition(i)%element, atmosphere%u1(j), atmosphere%u2(j), &
-					atmosphere%u3(j), ei1, ei2, weight, atmosphere%abundance)
-				lineList%transition(i)%backOpacity(j) = backgroundOpacity(atmosphere%T(j), atmosphere%Pe(j), atmosphere%PH(j), atmosphere%PHminus(j), &
-					atmosphere%PHplus(j), atmosphere%PH2(j), atmosphere%PH2plus(j), lineList%transition(i)%lambda0)
-			enddo
+			call partitionAtomic(atmosphere%T, lineList%transition(i)%element, atmosphere%u1, atmosphere%u2, &
+				atmosphere%u3, ei1, ei2, weight, atmosphere%abundance)
 			
 			atmosphere%n1overn0 = saha(atmosphere%T, atmosphere%Pe, atmosphere%u1, atmosphere%u2, ei1)
 			atmosphere%n2overn1 = saha(atmosphere%T, atmosphere%Pe, atmosphere%u2, atmosphere%u3, ei2)
@@ -108,17 +104,7 @@ contains
   		lineList%intensityContinuum = shortCharacteristics(atmosphere%height, lineList%opacityContinuum, lineList%source, 1.d0, lineList%boundary, -1)
   		
   		stokesOut(1,:) = lineList%intensity
-  		stokesOut(5,:) = lineList%intensityContinuum
-		
-! 		loop = 1
-! 		do i = 1, lineList%nLines			
-! 			if (lineList%transition(i)%active) then
-! 				do j = 1, lineList%transition(i)%nLambda
-! 					write(12,*) lineList%transition(i)%lambda(j), lineList%intensity(loop) / lineList%intensityContinuum(loop)
-! 					loop = loop + 1
-! 				enddo
-! 			endif			
-! 		enddo				
+  		stokesOut(5,:) = lineList%intensityContinuum		
 		
 	end subroutine synthLines
 end module synthModule
